@@ -1,0 +1,131 @@
+version: 2
+
+sources:
+  - name: oltp_source
+    description: Source OLTP transactional system
+    database: DBT_RI_ASSMNT
+    schema: SOURCE
+    tables:
+      - name: Customer
+        description: Customer master data from OLTP system
+        columns:
+          - name: Id
+            description: Primary key
+            tests:
+              - unique
+              - not_null
+          - name: FirstName
+            tests:
+              - not_null
+          - name: LastName
+            tests:
+              - not_null
+
+      - name: Supplier
+        description: Supplier master data
+        columns:
+          - name: Id
+            description: Primary key
+            tests:
+              - unique
+              - not_null
+          - name: CompanyName
+            tests:
+              - not_null
+
+      - name: Product
+        description: Product catalog
+        columns:
+          - name: Id
+            description: Primary key
+            tests:
+              - unique
+              - not_null
+          - name: SupplierId
+            description: Foreign key to Supplier
+            tests:
+              - not_null
+              - relationships:
+                  to: source('oltp_source', 'Supplier')
+                  field: Id
+
+      - name: Order
+        quoting:
+          identifier: true  # adding this to fix Order being a reserved word in SF.
+        description: Customer orders
+        columns:
+          - name: Id
+            description: Primary key
+            tests:
+              - unique
+              - not_null
+          - name: CustomerId
+            description: Foreign key to Customer
+            tests:
+              - not_null
+              - relationships:
+                  to: source('oltp_source', 'Customer')
+                  field: Id
+
+      - name: OrderItem
+        description: Line items for orders
+        columns:
+          - name: Id
+            description: Primary key
+            tests:
+              - unique
+              - not_null
+          - name: OrderId
+            description: Foreign key to Order
+            tests:
+              - not_null
+          - name: ProductId
+            description: Foreign key to Product
+            tests:
+              - not_null
+
+models:
+  - name: bronze_customers
+    description: Raw customer data from source system (Bronze layer)
+    columns:
+      - name: customer_id
+        description: Unique identifier for customer
+        tests:
+          - unique
+          - not_null
+
+  - name: bronze_suppliers
+    description: Raw supplier data from source system (Bronze layer)
+    columns:
+      - name: supplier_id
+        description: Unique identifier for supplier
+        tests:
+          - unique
+          - not_null
+
+  - name: bronze_products
+    description: Raw product data from source system (Bronze layer)
+    columns:
+      - name: product_id
+        description: Unique identifier for product
+        tests:
+          - unique
+          - not_null
+
+  - name: bronze_orders
+    description: Raw order data from source system (Bronze layer)
+    columns:
+      - name: order_id
+        description: Unique identifier for order
+        tests:
+          - unique
+          - not_null
+
+  - name: bronze_order_items
+    description: Raw order item data from source system (Bronze layer)
+    columns:
+      - name: order_item_id
+        description: Unique identifier for order item
+        tests:
+          - unique
+          - not_null
