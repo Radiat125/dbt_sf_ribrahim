@@ -1,0 +1,152 @@
+version: 2
+
+models:
+  - name: silver_customers
+    description: |
+      Cleansed and conformed customer data.
+      Transformations:
+      - Trimmed whitespace from names
+      - Standardized null handling
+      - Added data quality flags
+    columns:
+      - name: customer_id
+        description: Unique identifier for customer
+        tests:
+          - unique
+          - not_null
+      - name: full_name
+        description: Concatenated first and last name
+        tests:
+          - not_null
+      - name: first_name
+        tests:
+          - not_null
+      - name: last_name
+        tests:
+          - not_null
+      - name: city
+        description: Customer city (cleansed)
+      - name: country
+        description: Customer country (cleansed)
+      - name: phone
+        description: Customer phone number
+
+  - name: silver_suppliers
+    description: |
+      Cleansed and conformed supplier data.
+      Transformations:
+      - Trimmed whitespace
+      - Standardized contact information
+    columns:
+      - name: supplier_id
+        description: Unique identifier for supplier
+        tests:
+          - unique
+          - not_null
+      - name: company_name
+        tests:
+          - not_null
+      - name: contact_name
+        description: Primary contact at supplier
+      - name: city
+        description: Supplier city
+      - name: country
+        description: Supplier country
+
+  - name: silver_products
+    description: |
+      Cleansed and conformed product data.
+      Transformations:
+      - Standardized pricing (avoid negative)
+      - Validated supplier relationships
+      - Cleaned product names
+    columns:
+      - name: product_id
+        description: Unique identifier for product
+        tests:
+          - unique
+          - not_null
+      - name: product_name
+        tests:
+          - not_null
+      - name: supplier_id
+        tests:
+          - not_null
+          - relationships:
+              to: ref('silver_suppliers')
+              field: supplier_id
+      - name: unit_price
+        description: Product unit price (validated non-negative)
+        tests:
+          - not_null
+      - name: is_discontinued
+        description: Product discontinuation status
+
+  - name: silver_orders
+    description: |
+      Cleansed and conformed order data.
+      Transformations:
+      - Validated order dates
+      - Ensured customer relationships
+      - Standardized amounts
+    columns:
+      - name: order_id
+        description: Unique identifier for order
+        tests:
+          - unique
+          - not_null
+      - name: order_date
+        description: Date order was placed
+        tests:
+          - not_null
+      - name: order_number
+        description: Human-readable order number
+      - name: customer_id
+        description: Foreign key to customer
+        tests:
+          - not_null
+          - relationships:
+              to: ref('silver_customers')
+              field: customer_id
+      - name: total_amount
+        description: Total order amount
+
+  - name: silver_order_items
+    description: |
+      Cleansed and conformed order item data.
+      Transformations:
+      - Calculated line totals
+      - Validated quantities (no negative)
+      - Ensured referential integrity
+    columns:
+      - name: order_item_id
+        description: Unique identifier for order item
+        tests:
+          - unique
+          - not_null
+      - name: order_id
+        description: Foreign key to order table
+        tests:
+          - not_null
+          - relationships:
+              to: ref('silver_orders')
+              field: order_id
+      - name: product_id
+        description: Foreign key to product table
+        tests:
+          - not_null
+          - relationships:
+              to: ref('silver_products')
+              field: product_id
+      - name: quantity
+        description: Quantity ordered (validated positive)
+        tests:
+          - not_null
+      - name: unit_price
+        description: Price per unit at time of order
+        tests:
+          - not_null
+      - name: line_total
+        description: Calculated total (quantity * unit_price)
+        tests:
+          - not_null
