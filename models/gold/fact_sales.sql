@@ -68,7 +68,7 @@ fact_with_keys AS (
         dc.customer_key,
         dp.product_key,
         ds.supplier_key,
-        TO_NUMBER(TO_CHAR(fp.order_date, 'YYYYMMDD')) AS date_key,
+        YEAR(fp.order_date) * 10000 + MONTH(fp.order_date) * 100 + DAY(fp.order_date) AS date_key,
         fp.quantity,
         fp.unit_price,
         fp.line_total,

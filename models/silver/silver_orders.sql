@@ -14,7 +14,7 @@ WITH bronze_orders AS (
 cleansed_orders AS (
     SELECT
         order_id,
-        TRY_TO_TIMESTAMP(order_date, 'MON DD YYYY HH12:MI:SS:MSSAM') AS order_date,
+        TO_TIMESTAMP_NTZ(REPLACE(order_date, ':000', ''), 'MON DD YYYY HH12:MI:SSAM') AS order_date, 
         NULLIF(TRIM(order_number), '') AS order_number,
         customer_id,
         COALESCE(total_amount, 0) AS total_amount,

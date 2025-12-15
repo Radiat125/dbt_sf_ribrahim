@@ -20,7 +20,7 @@ WITH date_spine AS (
 
 dim_date AS (
     SELECT
-        TO_NUMBER(TO_VARCHAR(date_day, 'YYYYMMDD')) AS date_key,
+        YEAR(date_day) * 10000 + MONTH(date_day) * 100 + DAY(date_day) AS date_key,
         date_day AS date,
         EXTRACT(DAY FROM date_day) AS day,
         EXTRACT(MONTH FROM date_day) AS month,
