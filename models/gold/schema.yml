@@ -1,0 +1,178 @@
+version: 2
+
+models:
+  - name: dim_customer
+    description: |
+      Customer dimension table, Type 1 SCD.
+      Contains current state of all customers.
+    columns:
+      - name: customer_key
+        description: Surrogate key for customer dimension
+        tests:
+          - unique
+          - not_null
+      - name: customer_id
+        description: Primary key from source system
+        tests:
+          - unique
+          - not_null
+      - name: first_name
+        description: Customer first name
+        tests:
+          - not_null
+      - name: last_name
+        description: Customer last name
+        tests:
+          - not_null
+      - name: full_name
+        description: Customer full name
+      - name: city
+        description: Customer city
+      - name: country
+        description: Customer country
+      - name: phone
+        description: Customer phone number
+
+  - name: dim_supplier
+    description: |
+      Supplier dimension table, Type 1 SCD.
+      Contains current state of all suppliers.
+    columns:
+      - name: supplier_key
+        description: Surrogate key for supplier dimension
+        tests:
+          - unique
+          - not_null
+      - name: supplier_id
+        description: Primary key from source system
+        tests:
+          - unique
+          - not_null
+      - name: company_name
+        description: Supplier company name
+        tests:
+          - not_null
+      - name: contact_name
+        description: Primary contact name
+      - name: city
+        description: Supplier city
+      - name: country
+        description: Supplier country
+
+  - name: dim_product
+    description: |
+      Product dimension table, Type 1 SCD(Could be Type 2, if objective includes tracking price history).
+      Contains current state of all products with supplier information.
+    columns:
+      - name: product_key
+        description: Surrogate key for product dimension
+        tests:
+          - unique
+          - not_null
+      - name: product_id
+        description: Primary key from source system
+        tests:
+          - unique
+          - not_null
+      - name: product_name
+        description: Product name
+        tests:
+          - not_null
+      - name: supplier_id
+        description: Reference to supplier
+        tests:
+          - not_null
+      - name: unit_price
+        description: Current unit price
+      - name: package
+        description: Package description
+      - name: is_discontinued
+        description: Product discontinuation flag
+
+  - name: dim_date
+    description: |
+      Date dimension table for 'Time series analytics'.
+      Conformed date dimension with calendar attributes.
+    columns:
+      - name: date_key
+        description: Surrogate key (YYYYMMDD)
+        tests:
+          - unique
+          - not_null
+      - name: date
+        description: Actual date
+        tests:
+          - unique
+          - not_null
+      - name: day
+        description: Day of month
+      - name: month
+        description: Month number
+      - name: year
+        description: year
+      - name: quarter
+        description: Quarter of year
+      - name: day_name
+        description: Name of the day (Monday, Tuesday, etc.)
+      - name: month_name
+        description: Name of the month (January, February, etc.)
+
+  - name: fact_sales
+    description: |
+      Sales fact table (Analytics/Gold layer).
+      One row per order line item.
+      Contains sales transactions with foreign keys to all dimensions.
+    columns:
+      - name: sales_key
+        description: Primary key for fact table
+        tests:
+          - unique
+          - not_null
+      - name: order_id
+        description: Business key for order
+        tests:
+          - not_null
+      - name: order_item_id
+        description: Business key for order line item
+        tests:
+          - not_null
+      - name: customer_key
+        description: Foreign key to dim_customer
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_customer')
+              field: customer_key
+      - name: product_key
+        description: Foreign key to dim_product
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_product')
+              field: product_key
+      - name: supplier_key
+        description: Foreign key to dim_supplier
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_supplier')
+              field: supplier_key
+      - name: date_key
+        description: Foreign key to dim_date
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_date')
+              field: date_key
+      - name: quantity
+        description: Quantity sold
+        tests:
+          - not_null
+      - name: unit_price
+        description: Unit price at time of sale
+        tests:
+          - not_null
+      - name: line_total
+        description: Extended price (quantity * unit_price)
+        tests:
+          - not_null
